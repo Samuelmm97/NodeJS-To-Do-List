@@ -88,6 +88,7 @@ app.post("/", function(req, res) {
   });
 
   if (listName === "Today") {
+    console.log(item.name);
     item.save();
     res.redirect("/");
   } else {
@@ -106,7 +107,7 @@ app.post("/delete", function(req, res) {
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
-    Item.findOneAndUpdate({_id: checkedItemId}, {$set: {dateFinished: dateEnd}}, function(err, item) {
+    Item.findOne({_id: checkedItemId}, function(err, item) {
       if (!err) {
         let elapsed = dateEnd - item.time;
         let elapsedString = "seconds";
@@ -125,12 +126,29 @@ app.post("/delete", function(req, res) {
           elapsedString = "minutes";
         }
         elapsed = Math.round(elapsed);
-        Item.findOneAndUpdate({_id: checkedItemId}, {$set: {dateFinished: elapsed, units: elapsedString}}, function(err, item) {
+        console.log(checkedItemId);
+        Item.findOne({_id: checkedItemId}, function(err, item) {
           if(err) {
             console.log(err);
+          } else {
+            if (item != null && item.name.substring(0,10) != "completed:") {
+              const item1 = new Item ({
+                name: "completed: " + item.name,
+                time: item.time,
+                date: item.date,
+                dateFinished: elapsed,
+                units: elapsedString
+              });
+              item1.save();
+            }
           }
         });
-        res.redirect("/");
+        Item.findByIdAndRemove(checkedItemId, function(err){
+          if (!err) {
+            console.log("Successfully deleted checked item.");
+            res.redirect("/");
+          }
+        });
       }
     });
   } else {
@@ -179,7 +197,7 @@ app.get("/:parameter", function(req, res) {
         });
 
         list.save();
-        res.redirect("/" + list.name);
+        res.redirect("/" + parameter);
       } else {
         //Show existing list
         res.render("list", {listTitle: foundList.name, newListItems : foundList.items});
