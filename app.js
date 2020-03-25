@@ -88,7 +88,7 @@ app.post("/", function(req, res) {
   });
 
   if (listName === "Today") {
-    console.log(item.name);
+    console.log(item);
     item.save();
     res.redirect("/");
   } else {
@@ -175,12 +175,33 @@ app.post("/delete", function(req, res) {
             elapsed = Math.round(elapsed);
             foundList.items[i].dateFinished = elapsed;
             foundList.items[i].units = elapsedString;
+            console.log(foundList.items[i].name);
+            if(foundList != null && foundList.items[i].name.substring(0,10) != "completed:") {
+              const item2 = new Item ({
+                name: "completed: " + foundList.items[i].name,
+                time: foundList.items[i].time,
+                date: foundList.items[i].date,
+                dateFinished: elapsed,
+                units: elapsedString
+              });
+              console.log(item2);
+              foundList.items.push(item2);
+              foundList.save();
+            }
           }
         }
-        foundList.save();
-        res.redirect("/" + listName);
       }
     });
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
+      if (!err){
+        List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
+          if(!err){
+            res.redirect("/" + listName);
+          }
+        });
+      }
+    });
+
   }
 });
 
