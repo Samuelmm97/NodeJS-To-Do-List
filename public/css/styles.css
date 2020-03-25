@@ -6,8 +6,13 @@ html {
 }
 
 h1 {
+  text-align: center;
   color: #fff;
   padding: 10px;
+}
+
+em {
+  display: block;
 }
 
 .box {
@@ -18,12 +23,25 @@ h1 {
   box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
 }
 
+.date {
+  margin: auto;
+  text-align: center;
+  font-size: .75rem;
+  color: green;
+}
+
+.dateEnd {
+  font-size: .75rem;
+  color: red;
+}
+
 #heading {
   background-color: #A683E3;
   text-align: center;
 }
 
 .item {
+  text-align: center;
   min-height: 70px;
   display: flex;
   align-items: center;
@@ -40,12 +58,14 @@ input:checked+p {
 }
 
 input[type="checkbox"] {
-  margin: 20px;
+  margin: 0 20px;
+  position: absolute;
 }
 
 p {
-  margin: 0;
-  padding: 20px;
+  text-align: center;
+  margin: auto;
+  padding: 20px 50px;
   font-size: 20px;
   font-weight: 200;
   color: #00204a;
