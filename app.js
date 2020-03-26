@@ -14,7 +14,8 @@ app.use(express.static("public"));
 mongoose.connect("mongodb+srv://admin-sam:Test123@cluster0-oql7h.mongodb.net/todolistDB",
 {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  useFindAndModify: false
 });
 mongoose.set('useFindAndModify', false);
 
@@ -81,6 +82,7 @@ app.post("/", function(req, res) {
   var date = new Date(time).toString().substring(4,15);
   const item = new Item ({
     name: itemName,
+    completed: 0
     time: time,
     date: date,
     dateFinished: "",
@@ -89,7 +91,6 @@ app.post("/", function(req, res) {
 
 //in the default page simply save items
   if (listName === "Today") {
-    console.log(item);
     item.save();
     res.redirect("/");
   } else {
@@ -97,10 +98,12 @@ app.post("/", function(req, res) {
     List.findOne({name: listName}, function(err, foundList) { //find list
       foundList.items.push(item);//store list in array
       let length = foundList.items.length; //number of items in list
+      console.log(foundList);
       for (var i = 0; i < length; i++) { //loop through every item
-        if(foundList.items[i].name.substring(0,10) == "completed:"){ //only find completed items
+        if(foundList.items[i].dateFinished != ""){ //only find completed items
           const item1 = new Item ({ //recreate found item to store at the bottom
             name: foundList.items[i].name,
+            completed: foundList.items[i].completed,
             time: foundList.items[i].time,
             date: foundList.items[i].date,
             dateFinished: foundList.items[i].dateFinished,
@@ -123,8 +126,10 @@ app.post("/", function(req, res) {
 
 //when item is checked
 app.post("/delete", function(req, res) {
+  const deleteId = req.body.trash;
   const listName = req.body.listName;
   const checkedItemId = req.body.checkbox; //capture item id from checked item
+  const checkedItemId2 = req.body.checkbox1;
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
@@ -133,7 +138,6 @@ app.post("/delete", function(req, res) {
         let elapsed = dateEnd - item.time; //elapsed time of item
         let elapsedString = "seconds";
         elapsed /= 1000;
-        console.log(elapsed);
         if (elapsed > 86400) {
           elapsed /= 86400;
           elapsedString = "days";
@@ -147,7 +151,6 @@ app.post("/delete", function(req, res) {
           elapsedString = "minutes";
         }
         elapsed = Math.round(elapsed);
-        console.log(checkedItemId);
         Item.findOne({_id: checkedItemId}, function(err, item) {
           if(err) {
             console.log(err);
@@ -166,13 +169,13 @@ app.post("/delete", function(req, res) {
         });
         Item.findByIdAndRemove(checkedItemId, function(err){
           if (!err) {
-            console.log("Successfully deleted checked item.");
             res.redirect("/");
           }
         });
       }
     });
   } else {
+    //THIS IS FOR UNCHECKED
     List.findOne({name: listName}, function(err, foundList){
       if (!err){
         for (var i = 0; i < foundList.items.length; i++)
@@ -196,7 +199,6 @@ app.post("/delete", function(req, res) {
             elapsed = Math.round(elapsed);
             foundList.items[i].dateFinished = elapsed;
             foundList.items[i].units = elapsedString;
-            console.log(foundList.items[i].name);
             if(foundList != null && foundList.items[i].name.substring(0,10) != "completed:") {
               const item2 = new Item ({
                 name: "completed: " + foundList.items[i].name,
@@ -205,7 +207,7 @@ app.post("/delete", function(req, res) {
                 dateFinished: elapsed,
                 units: elapsedString
               });
-              console.log(item2);
+              console.log(foundList.items[i].name);
               foundList.items.push(item2);
               foundList.save();
             }
@@ -217,12 +219,66 @@ app.post("/delete", function(req, res) {
       if (!err){
         List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
           if(!err){
-            res.redirect("/" + listName);
+            console.log("deleted");//res.redirect("/" + listName);
           }
         });
       }
     });
-
+    //THIS IS FOR CHECKED
+    List.findOne({name: listName}, function(err, foundList){
+      if (!err){
+        for (var i = 0; i < foundList.items.length; i++)
+        {
+          if (foundList.items[i]._id == checkedItemId2) {
+            let elapsed = dateEnd - foundList.items[i].time;
+            let elapsedString = "seconds";
+            elapsed /= 1000;
+            if (elapsed > 86400) {
+              elapsed /= 86400;
+              elapsedString = "days";
+            }
+            if (elapsed > 3600) {
+              elapsed /= 3600;
+              elapsedString = "hours";
+            }
+            if (elapsed > 60) {
+              elapsed /= 60;
+              elapsedString = "minutes";
+            }
+            elapsed = Math.round(elapsed);
+            foundList.items[i].dateFinished = elapsed;
+            foundList.items[i].units = elapsedString;
+            if(foundList != null && foundList.items[i].name.substring(0,10) == "completed:") {
+              const item3 = new Item ({
+                name: foundList.items[i].name.substring(11,100),
+                time: foundList.items[i].time,
+                date: foundList.items[i].date,
+                dateFinished: "",
+                units: "not finished yet"
+              });
+              if (foundList.items[i].name != item3.name) {
+                foundList.items.push(item3);
+              }
+              foundList.save();
+            }
+          }
+        }
+      }
+    });
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId2}}}, function(err, foundList){
+      if (!err){
+        List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId2}}}, function(err, foundList){
+          if(!err){
+            console.log("updated");
+          }
+        });
+      }
+    });
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: deleteId}}}, function(err, foundList){
+      if (!err){
+        res.redirect("/" + listName);
+      }
+    });
   }
 });
 

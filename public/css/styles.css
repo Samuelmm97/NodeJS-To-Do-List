@@ -57,7 +57,7 @@ input:checked+p {
   text-decoration-color: #A683E3;
 }
 
-input[type="checkbox"] {
+.checkbox {
   margin: 0 20px;
   position: absolute;
 }
@@ -76,7 +76,7 @@ form.item {
   margin-left: 20px;
 }
 
-button {
+.add {
   min-height: 50px;
   width: 50px;
   border-radius: 50%;
@@ -86,6 +86,29 @@ button {
   font-size: 30px;
   padding-bottom: 6px;
   border-width: 0;
+}
+
+.btn {
+  margin-left: 350px;
+  position: absolute;
+}
+
+.trash input[type="checkbox"],
+.trash .checked{
+  display: none;
+}
+
+.trash input[type="checkbox"]:checked ~ .checked {
+  display: inline-block;
+}
+
+.trash input[type="checkbox"]:checked ~ .unchecked {
+  display: none;
+}
+
+label {
+  position: relative;
+  right: 20px;
 }
 
 i {
