@@ -87,6 +87,7 @@ app.post("/", function(req, res) {
     units: "Not finished yet"
   });
 
+
   if (listName === "Today") {
     console.log(item);
     item.save();
@@ -94,7 +95,45 @@ app.post("/", function(req, res) {
   } else {
     List.findOne({name: listName}, function(err, foundList) {
       foundList.items.push(item);
+      console.log(foundList);
+      let length = foundList.items.length;
+      let numCompleted = 0;
+      for (var i = 0; i < length; i++) {
+        if(foundList.items[i].name.substring(0,10) == "completed:"){
+          console.log("name= " + foundList.items[i].name);
+          const item1 = new Item ({
+            name: foundList.items[i].name,
+            time: foundList.items[i].time,
+            date: foundList.items[i].date,
+            dateFinished: foundList.items[i].dateFinished,
+            units: foundList.items[i].units
+          });
+          foundList.items.push(item1);
+          List.findByIdAndRemove(foundList.items[i]._id, function(err){
+            if (!err){
+              console.log("removed");
+              List.findByIdAndRemove(foundList.items[i]._id, function(err){
+                if (!err){
+                  console.log("removed");
+                }
+              });
+            }
+          });
+          numCompleted++;
+        }
+      }
+      for(var i = 0; i < length; i++){
+        if (foundList.items[i].name.substring(0,10) == "completed:"){
+          console.log("test");
+          List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: foundList.items[i]._id}}}, function(err, foundList){
+            if(!err){
+              console.log("removed Succesfully");
+            }
+          });
+        }
+      }
       foundList.save();
+      console.log(numCompleted);
       res.redirect("/" + listName);
     });
   }
