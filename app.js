@@ -1,4 +1,5 @@
-//jshint esversion: 6
+//jshint esversion:6
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -6,7 +7,7 @@ const _ = require("lodash");
 
 const app = express();
 
-app.set("view engine", "ejs");
+app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
@@ -19,61 +20,51 @@ mongoose.connect("mongodb+srv://admin-sam:Test123@cluster0-oql7h.mongodb.net/tod
 });
 mongoose.set('useFindAndModify', false);
 
-//database storing each item entry
 const itemsSchema = {
   name: String,
+  completed: {type: Number, default: 0},
   time: Number,
   date: String,
   dateFinished: Number,
   units: String
 };
 
-const Item = mongoose.model("item", itemsSchema);
+const Item = mongoose.model("Item", itemsSchema);
 
-//default items to start off the list
-const item1 = new Item ({
-  name: "Welcome to your to-do list!"
-});
-
-const item2 = new Item ({
-  name: "Hit + to add a new item."
-});
-
-const item3 = new Item ({
-  name: "<-- Hit this to complete an item."
-});
-
-const defaultItems = [item1, item2, item3];
-
-//database storing seperate lists i.e: work/school list
 const listSchema = {
   name: String,
-  items: [itemsSchema],
+  items: [itemsSchema]
 };
 
 const List = mongoose.model("List", listSchema);
 
 
-//home page
 app.get("/", function(req, res) {
 
-  Item.find({}, function(err, foundItems) {
-    if (foundItems.length === 0) { //adds default items
-      Item.insertMany(defaultItems, function(err) {
-        if(err) {
-          console.log(err);
-        } else {
-          console.log("Succesfully inserted");
-        }
-      });
-      res.redirect("/");
-    } else {
-      res.render("list", {listTitle: "Today", newListItems : foundItems});
+  Item.find({}, function(err, foundItems){
+      res.render("list", {listTitle: "Today", newListItems: foundItems});
+  });
+});
+app.get("/:customListName", function(req, res){
+  const customListName = _.capitalize(req.params.customListName);
+
+  List.findOne({name: customListName}, function(err, foundList){
+    if (!err){
+      if (!foundList){
+        //Create a new list
+        const list = new List({
+          name: customListName,
+        });
+        list.save();
+        res.redirect("/" + customListName);
+      } else {
+        //Show an existing list
+        res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
+      }
     }
   });
 });
 
-//when + button is pressed
 app.post("/", function(req, res) {
   //posts items
   const itemName = req.body.newItem;//name of item
@@ -82,7 +73,7 @@ app.post("/", function(req, res) {
   var date = new Date(time).toString().substring(4,15);
   const item = new Item ({
     name: itemName,
-    completed: 0
+    completed: 0,
     time: time,
     date: date,
     dateFinished: "",
@@ -98,12 +89,11 @@ app.post("/", function(req, res) {
     List.findOne({name: listName}, function(err, foundList) { //find list
       foundList.items.push(item);//store list in array
       let length = foundList.items.length; //number of items in list
-      console.log(foundList);
       for (var i = 0; i < length; i++) { //loop through every item
-        if(foundList.items[i].dateFinished != ""){ //only find completed items
+        if(foundList.items[i].completed == 1){ //only find completed items
           const item1 = new Item ({ //recreate found item to store at the bottom
             name: foundList.items[i].name,
-            completed: foundList.items[i].completed,
+            completed: 1,
             time: foundList.items[i].time,
             date: foundList.items[i].date,
             dateFinished: foundList.items[i].dateFinished,
@@ -123,63 +113,63 @@ app.post("/", function(req, res) {
   }
 
 });
-
-//when item is checked
-app.post("/delete", function(req, res) {
+app.post("/delete", function(req, res){
   const deleteId = req.body.trash;
+  const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
-  const checkedItemId = req.body.checkbox; //capture item id from checked item
-  const checkedItemId2 = req.body.checkbox1;
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
-    Item.findOne({_id: checkedItemId}, function(err, item) {
+    Item.findById(checkedItemId, function(err, item){
       if (!err) {
-        let elapsed = dateEnd - item.time; //elapsed time of item
-        let elapsedString = "seconds";
-        elapsed /= 1000;
-        if (elapsed > 86400) {
-          elapsed /= 86400;
-          elapsedString = "days";
-        }
-        if (elapsed > 3600) {
-          elapsed /= 3600;
-          elapsedString = "hours";
-        }
-        if (elapsed > 60) {
-          elapsed /= 60;
-          elapsedString = "minutes";
-        }
-        elapsed = Math.round(elapsed);
-        Item.findOne({_id: checkedItemId}, function(err, item) {
-          if(err) {
-            console.log(err);
-          } else {
-            if (item != null && item.name.substring(0,10) != "completed:") {
-              const item1 = new Item ({
-                name: "completed: " + item.name,
-                time: item.time,
-                date: item.date,
-                dateFinished: elapsed,
-                units: elapsedString
-              });
-              item1.save();
-            }
+        if (item != null) {
+          if(item.completed === 0) {
+            item.completed++;
           }
-        });
-        Item.findByIdAndRemove(checkedItemId, function(err){
-          if (!err) {
-            res.redirect("/");
+          else {
+            item.completed--;
           }
-        });
+          let elapsed = dateEnd - item.time; //elapsed time of item
+          let elapsedString = "seconds";
+          elapsed /= 1000;
+          if (elapsed > 86400) {
+            elapsed /= 86400;
+            elapsedString = "days";
+          }
+          if (elapsed > 3600) {
+            elapsed /= 3600;
+            elapsedString = "hours";
+          }
+          if (elapsed > 60) {
+            elapsed /= 60;
+            elapsedString = "minutes";
+          }
+          elapsed = Math.round(elapsed);
+          item.dateFinished = elapsed;
+          item.units = elapsedString;
+          console.log(item);
+          item.save();
+        }
+      }
+    });
+    console.log(deleteId);
+    Item.findByIdAndRemove(deleteId, function(err, foundItem) {
+      if(!err) {
+        res.redirect("/");
       }
     });
   } else {
-    //THIS IS FOR UNCHECKED
     List.findOne({name: listName}, function(err, foundList){
       if (!err){
         for (var i = 0; i < foundList.items.length; i++)
         {
+          if (foundList.items[i]._id == checkedItemId)
+          if(foundList.items[i].completed === 0) {
+            foundList.items[i].completed++;
+          }
+          else {
+            foundList.items[i].completed--;
+          }
           if (foundList.items[i]._id == checkedItemId) {
             let elapsed = dateEnd - foundList.items[i].time;
             let elapsedString = "seconds";
@@ -199,112 +189,20 @@ app.post("/delete", function(req, res) {
             elapsed = Math.round(elapsed);
             foundList.items[i].dateFinished = elapsed;
             foundList.items[i].units = elapsedString;
-            if(foundList != null && foundList.items[i].name.substring(0,10) != "completed:") {
-              const item2 = new Item ({
-                name: "completed: " + foundList.items[i].name,
-                time: foundList.items[i].time,
-                date: foundList.items[i].date,
-                dateFinished: elapsed,
-                units: elapsedString
-              });
-              console.log(foundList.items[i].name);
-              foundList.items.push(item2);
-              foundList.save();
-            }
-          }
-        }
       }
-    });
-    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
-      if (!err){
-        List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
-          if(!err){
-            console.log("deleted");//res.redirect("/" + listName);
-          }
-        });
-      }
-    });
-    //THIS IS FOR CHECKED
-    List.findOne({name: listName}, function(err, foundList){
-      if (!err){
-        for (var i = 0; i < foundList.items.length; i++)
-        {
-          if (foundList.items[i]._id == checkedItemId2) {
-            let elapsed = dateEnd - foundList.items[i].time;
-            let elapsedString = "seconds";
-            elapsed /= 1000;
-            if (elapsed > 86400) {
-              elapsed /= 86400;
-              elapsedString = "days";
-            }
-            if (elapsed > 3600) {
-              elapsed /= 3600;
-              elapsedString = "hours";
-            }
-            if (elapsed > 60) {
-              elapsed /= 60;
-              elapsedString = "minutes";
-            }
-            elapsed = Math.round(elapsed);
-            foundList.items[i].dateFinished = elapsed;
-            foundList.items[i].units = elapsedString;
-            if(foundList != null && foundList.items[i].name.substring(0,10) == "completed:") {
-              const item3 = new Item ({
-                name: foundList.items[i].name.substring(11,100),
-                time: foundList.items[i].time,
-                date: foundList.items[i].date,
-                dateFinished: "",
-                units: "not finished yet"
-              });
-              if (foundList.items[i].name != item3.name) {
-                foundList.items.push(item3);
-              }
-              foundList.save();
-            }
-          }
-        }
-      }
-    });
-    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId2}}}, function(err, foundList){
-      if (!err){
-        List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId2}}}, function(err, foundList){
-          if(!err){
-            console.log("updated");
-          }
-        });
-      }
-    });
+    }
+    foundList.save();
     List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: deleteId}}}, function(err, foundList){
       if (!err){
         res.redirect("/" + listName);
       }
     });
   }
-});
+    });
+  }
 
-app.get("/:parameter", function(req, res) {
-  parameter = _.capitalize(req.params.parameter);
-
-  List.findOne({name: parameter}, function(err, foundList) {
-    if(!err) {
-      if(!foundList) {
-        //Create a new list
-        const list = new List ({
-          name: parameter,
-          items: defaultItems
-        });
-
-        list.save();
-        res.redirect("/" + parameter);
-      } else {
-        //Show existing list
-        res.render("list", {listTitle: foundList.name, newListItems : foundList.items});
-      }
-    }
-  });
 
 });
-
 
 app.get("/about", function(req, res){
   res.render("about");
