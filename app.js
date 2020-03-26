@@ -75,8 +75,8 @@ app.get("/", function(req, res) {
 //when + button is pressed
 app.post("/", function(req, res) {
   //posts items
-  const itemName = req.body.newItem;
-  const listName = req.body.list;
+  const itemName = req.body.newItem;//name of item
+  const listName = req.body.list;//name of page
   var time = new Date().getTime();
   var date = new Date(time).toString().substring(4,15);
   const item = new Item ({
@@ -87,68 +87,50 @@ app.post("/", function(req, res) {
     units: "Not finished yet"
   });
 
-
+//in the default page simply save items
   if (listName === "Today") {
     console.log(item);
     item.save();
     res.redirect("/");
   } else {
-    List.findOne({name: listName}, function(err, foundList) {
-      foundList.items.push(item);
-      console.log(foundList);
-      let length = foundList.items.length;
-      let numCompleted = 0;
-      for (var i = 0; i < length; i++) {
-        if(foundList.items[i].name.substring(0,10) == "completed:"){
-          console.log("name= " + foundList.items[i].name);
-          const item1 = new Item ({
+//in all custom pages add new items and push completed items to the bottom
+    List.findOne({name: listName}, function(err, foundList) { //find list
+      foundList.items.push(item);//store list in array
+      let length = foundList.items.length; //number of items in list
+      for (var i = 0; i < length; i++) { //loop through every item
+        if(foundList.items[i].name.substring(0,10) == "completed:"){ //only find completed items
+          const item1 = new Item ({ //recreate found item to store at the bottom
             name: foundList.items[i].name,
             time: foundList.items[i].time,
             date: foundList.items[i].date,
             dateFinished: foundList.items[i].dateFinished,
             units: foundList.items[i].units
           });
-          foundList.items.push(item1);
-          List.findByIdAndRemove(foundList.items[i]._id, function(err){
-            if (!err){
-              console.log("removed");
-              List.findByIdAndRemove(foundList.items[i]._id, function(err){
-                if (!err){
-                  console.log("removed");
-                }
-              });
-            }
-          });
-          numCompleted++;
-        }
-      }
-      for(var i = 0; i < length; i++){
-        if (foundList.items[i].name.substring(0,10) == "completed:"){
-          console.log("test");
+          foundList.items.push(item1); //use array to store items in lists
           List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: foundList.items[i]._id}}}, function(err, foundList){
             if(!err){
-              console.log("removed Succesfully");
+              console.log("removed Succesfully"); //removed original item
             }
           });
         }
       }
       foundList.save();
-      console.log(numCompleted);
       res.redirect("/" + listName);
     });
   }
 
 });
 
+//when item is checked
 app.post("/delete", function(req, res) {
   const listName = req.body.listName;
-  const checkedItemId = req.body.checkbox;
+  const checkedItemId = req.body.checkbox; //capture item id from checked item
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
     Item.findOne({_id: checkedItemId}, function(err, item) {
       if (!err) {
-        let elapsed = dateEnd - item.time;
+        let elapsed = dateEnd - item.time; //elapsed time of item
         let elapsedString = "seconds";
         elapsed /= 1000;
         console.log(elapsed);
@@ -271,13 +253,6 @@ app.get("/:parameter", function(req, res) {
 app.get("/about", function(req, res){
   res.render("about");
 });
-
-// app.get("/finished/:parameter", function(req, res) {
-//   Item.find({}, function(err, foundItems) {
-//     res.render("finished");
-//     console.log(foundItems);
-//   });
-// });
 
 let port = process.env.PORT;
 if (port == null || port == "") {

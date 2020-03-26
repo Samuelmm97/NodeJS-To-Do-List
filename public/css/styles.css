@@ -88,6 +88,10 @@ button {
   border-width: 0;
 }
 
+i {
+  color: red;
+}
+
 input[type="text"] {
   text-align: center;
   height: 60px;

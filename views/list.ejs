@@ -11,7 +11,12 @@
 
              <p>
                <em class="date"> <%= item.date  %> </em>
-               <%= item.name %>
+               <% if (item.name.substring(0,10) == "completed:") { %>
+                 <i> <%= item.name.substring(0,10) %> </i>
+                 <%= item.name.substring(11,100) %>
+              <% } else { %>
+                <%= item.name %>
+            <%  } %>
                <em class="dateEnd"><%= item.dateFinished %> <%= item.units %></em>
              </p>
 
