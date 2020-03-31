@@ -14,14 +14,31 @@ h1 {
 em {
   display: block;
 }
+@media screen and (max-width: 1000px) {
+   .box {
+     width: 80%;
+   }
+}
+
+@media screen and (min-width: 1000px) {
+   .box {
+     width: 40%;
+   }
+}
+
+@media screen and (min-width: 1500px) {
+   .box {
+     width: 30%;
+   }
+}
 
 .box {
-  max-width: 400px;
   margin: 50px auto;
   background: white;
   border-radius: 5px;
   box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
 }
+
 
 .date {
   margin: auto;
@@ -77,6 +94,8 @@ form.item {
 }
 
 .add {
+  margin-right: 10px;
+  margin-left: 10px;
   min-height: 50px;
   width: 50px;
   border-radius: 50%;
@@ -123,7 +142,7 @@ input[type="text"] {
   background: transparent;
   font-size: 20px;
   font-weight: 200;
-  width: 313px;
+  width: 100%
 }
 
 input[type="text"]:focus {
