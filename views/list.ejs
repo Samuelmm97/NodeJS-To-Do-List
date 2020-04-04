@@ -5,6 +5,40 @@
   </div>
 
   <div class="box">
+
+    <form class="item" action="/" method="post">
+      <input type="text" name="newItem" placeholder="New Item" autocomplete="off">
+      <button class="add" type="submit" name="list" value="<%= listTitle %>">+</button>
+    </form>
+
+    <%  newListItems.forEach(function(item){ %>
+
+      <form action="/delete" method="post">
+        <div class="item">
+          <input class="checkbox" type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
+        <%  if (!item.completed) { %>
+            <p>
+              <em class="date"><%= item.date %></em>
+              <%=item.name%>
+            </p>
+      <%    } else {  %>
+            <p>
+              <em class="date"><%= item.date %></em>
+              <i class="completed">completed: </i>
+              <%= item.name %>
+              <em class="dateEnd"><%= item.dateFinished %> <%= item.units %></em>
+            </p>
+        <%  } %>
+              <label class="trash">
+                 <input class="btn" type="checkbox" name="trash" value="<%=item._id%>" onChange="this.form.submit()">
+                 <i class="fas fa-trash unchecked"></i>
+                 <i class="fas fa-trash checked"></i>
+               </label>
+        </div>
+        <input type="hidden" name="listName" value="<%= listTitle %>"></input>
+      </form>
+    <%  }) %>
+
     <div class="item">
       <p>Welcome to your to-do-list!</p>
     </div>
@@ -18,39 +52,6 @@
       <p>Create your own list by adding "/(your list name)" to the address bar</p>
     </div>
 
-  <%  newListItems.forEach(function(item){ %>
-
-    <form action="/delete" method="post">
-      <div class="item">
-        <input class="checkbox" type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
-      <%  if (!item.completed) { %>
-          <p>
-            <em class="date"><%= item.date %></em>
-            <%=item.name%>
-          </p>
-    <%    } else {  %>
-          <p>
-            <em class="date"><%= item.date %></em>
-            <i class="completed">completed: </i>
-            <%= item.name %>
-            <em class="dateEnd"><%= item.dateFinished %> <%= item.units %></em>
-          </p>
-      <%  } %>
-            <label class="trash">
-               <input class="btn" type="checkbox" name="trash" value="<%=item._id%>" onChange="this.form.submit()">
-               <i class="fas fa-trash unchecked"></i>
-               <i class="fas fa-trash checked"></i>
-             </label>
-      </div>
-      <input type="hidden" name="listName" value="<%= listTitle %>"></input>
-    </form>
-  <%  }) %>
-
-
-      <form class="item" action="/" method="post">
-        <input type="text" name="newItem" placeholder="New Item" autocomplete="off">
-        <button class="add" type="submit" name="list" value="<%= listTitle %>">+</button>
-      </form>
   </div>
 
 <%- include("footer") -%>
