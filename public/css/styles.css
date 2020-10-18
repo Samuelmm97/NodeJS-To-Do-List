@@ -1,7 +1,8 @@
 html {
-  background-color: #E4E9FD;
-  background-image: -webkit-linear-gradient(65deg, #A683E3 50%, #E4E9FD 50%);
-  min-height: 1000px;
+  background: #eee;
+  background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
+  padding: 0 16px;
+  /* min-height: 1000px; */
   font-family: 'helvetica neue';
 }
 
@@ -53,7 +54,7 @@ em {
 }
 
 #heading {
-  background-color: #A683E3;
+  background-color: #0e918c;
   text-align: center;
 }
 
@@ -71,7 +72,7 @@ em {
 
 input:checked+p {
   text-decoration: line-through;
-  text-decoration-color: #A683E3;
+  text-decoration-color: #0e918c;
 }
 
 .checkbox {
@@ -100,7 +101,7 @@ form.item {
   width: 50px;
   border-radius: 50%;
   border-color: transparent;
-  background-color: #A683E3;
+  background-color: #0e918c;
   color: #fff;
   font-size: 30px;
   padding-bottom: 6px;
@@ -110,19 +111,6 @@ form.item {
 .btn {
   margin-left: 350px;
   position: absolute;
-}
-
-.edit input[type="checkbox"],
-.edit .edit{
-  display: none;
-}
-
-.edit input[type="checkbox"]:checked ~ .checked {
-  display: inline-block;
-}
-
-.edit input[type="checkbox"]:checked ~ .unchecked {
-  display: none;
 }
 
 .trash input[type="checkbox"],
@@ -138,18 +126,9 @@ form.item {
   display: none;
 }
 
-.trash {
-  position: relative;
-  right: 20px;
-}
-
-.edit {
-  position: relative;
-  margin-right: 30px;
-}
-
 label {
   position: relative;
+  right: 20px;
 }
 
 i {
@@ -181,4 +160,9 @@ footer {
   color: white;
   color: rgba(0, 0, 0, 0.5);
   text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10%;
+  z-index: -1;
 }
