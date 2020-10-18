@@ -112,6 +112,19 @@ form.item {
   position: absolute;
 }
 
+.edit input[type="checkbox"],
+.edit .edit{
+  display: none;
+}
+
+.edit input[type="checkbox"]:checked ~ .checked {
+  display: inline-block;
+}
+
+.edit input[type="checkbox"]:checked ~ .unchecked {
+  display: none;
+}
+
 .trash input[type="checkbox"],
 .trash .checked{
   display: none;
@@ -125,9 +138,18 @@ form.item {
   display: none;
 }
 
-label {
+.trash {
   position: relative;
   right: 20px;
+}
+
+.edit {
+  position: relative;
+  margin-right: 30px;
+}
+
+label {
+  position: relative;
 }
 
 i {

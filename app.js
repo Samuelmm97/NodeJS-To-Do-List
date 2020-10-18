@@ -117,6 +117,10 @@ app.post("/delete", function(req, res){
   const deleteId = req.body.trash;
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
+  const editId = req.body.edit;
+
+  console.log(editId);
+
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
