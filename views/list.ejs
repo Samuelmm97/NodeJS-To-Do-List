@@ -7,9 +7,25 @@
   <div class="box">
 
     <form class="item" action="/" method="post">
+      <input type="text" name="newList" placeholder="New List" autocomplete="off">
+      <button class="add" type="submit">+</button>
+    </form>
+
+    <div class="item">
+      <p>Welcome to your to-do-list!</p>
+    </div>
+    <div class="item">
+      <p>Hit the checkbox to complete an item</p>
+    </div>
+    <div class="item">
+      <p>Create your own list or add to this one</p>
+    </div>
+
+    <form class="item" action="/" method="post">
       <input type="text" name="newItem" placeholder="New Item" autocomplete="off">
       <button class="add" type="submit" name="list" value="<%= listTitle %>">+</button>
     </form>
+
 
     <%  newListItems.forEach(function(item){ %>
 
@@ -46,19 +62,6 @@
         <input type="hidden" name="listName" value="<%= listTitle %>"></input>
       </form>
     <%  }) %>
-
-    <div class="item">
-      <p>Welcome to your to-do-list!</p>
-    </div>
-    <div class="item">
-      <p>Hit The + button to add new items</p>
-    </div>
-    <div class="item">
-      <p>Hit the checkbox to complete an item</p>
-    </div>
-    <div class="item">
-      <p>Create your own list by adding "/(your list name)" to the address bar</p>
-    </div>
 
   </div>
 

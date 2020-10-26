@@ -46,6 +46,7 @@ app.get("/", function(req, res) {
       res.render("list", {listTitle: "Today", newListItems: foundItems});
   });
 });
+
 app.get("/:customListName", function(req, res){
   const customListName = _.capitalize(req.params.customListName);
 
@@ -68,6 +69,7 @@ app.get("/:customListName", function(req, res){
 
 app.post("/", function(req, res) {
   //posts items
+  const newList = req.body.newList;
   const itemName = req.body.newItem;//name of item
   const listName = req.body.list;//name of page
   var time = new Date().getTime();
@@ -81,11 +83,19 @@ app.post("/", function(req, res) {
     units: "Not finished yet"
   });
 
-//in the default page simply save items
+  //if the user makes their own list
+  if (newList != null) {
+    res.redirect("/" + newList);
+  }
+  //in the default page simply save items
   if (listName === "Today") {
     item.save();
     res.redirect("/");
   } else {
+    //if the user is in a custom list and tries to make a new list
+    if (newList != null) {
+      res.redirect("/" + newList)
+    }
 //in all custom pages add new items and push completed items to the bottom
     List.findOne({name: listName}, function(err, foundList) { //find list
       foundList.items.push(item);//store list in array
