@@ -6,7 +6,7 @@
 
   <div class="box">
 
-    <form class="item" action="/" method="post">
+    <form class="item" action="/list" method="post">
       <input type="text" name="newList" placeholder="New List" autocomplete="off">
       <button class="add" type="submit">+</button>
     </form>
@@ -30,7 +30,7 @@
     <%  newListItems.forEach(function(item){ %>
 
 
-        <%  if (!item.completed) { %>
+        <%  if (!item.completed && item.name != '') { %>
           <form action="/delete" method="post">
             <div class="item">
               <input class="checkbox" type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">

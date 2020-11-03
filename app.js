@@ -13,6 +13,8 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
+
+//Database connection
 mongoose.connect("mongodb+srv://" + process.env.DATABASE_NAME + ":" + process.env.DATABASE_PASSWORD + "@cluster0-oql7h.mongodb.net/todolistDB",
 {
   useNewUrlParser: true,
@@ -21,6 +23,7 @@ mongoose.connect("mongodb+srv://" + process.env.DATABASE_NAME + ":" + process.en
 });
 mongoose.set('useFindAndModify', false);
 
+//items in a todo list
 const itemsSchema = {
   name: String,
   completed: {type: Number, default: 0},
@@ -32,6 +35,7 @@ const itemsSchema = {
 
 const Item = mongoose.model("Item", itemsSchema);
 
+//for custom lists
 const listSchema = {
   name: String,
   items: [itemsSchema]
@@ -39,7 +43,7 @@ const listSchema = {
 
 const List = mongoose.model("List", listSchema);
 
-
+//home page
 app.get("/", function(req, res) {
 
   Item.find({}, function(err, foundItems){
@@ -47,9 +51,13 @@ app.get("/", function(req, res) {
   });
 });
 
-app.get("/:customListName", function(req, res){
+//custom pages
+app.get("/:customListName", function(req, res) {
+
+  //capatalize name of list
   const customListName = _.capitalize(req.params.customListName);
 
+  //find list in database
   List.findOne({name: customListName}, function(err, foundList){
     if (!err){
       if (!foundList){
@@ -67,13 +75,16 @@ app.get("/:customListName", function(req, res){
   });
 });
 
+//add button pressed
 app.post("/", function(req, res) {
   //posts items
-  const newList = req.body.newList;
   const itemName = req.body.newItem;//name of item
   const listName = req.body.list;//name of page
+  //keep track of date and time for item
   var time = new Date().getTime();
   var date = new Date(time).toString().substring(4,15);
+
+  //create new item
   const item = new Item ({
     name: itemName,
     completed: 0,
@@ -83,63 +94,81 @@ app.post("/", function(req, res) {
     units: "Not finished yet"
   });
 
-  //if the user makes their own list
-  if (newList != null) {
-    res.redirect("/" + newList);
-  }
   //in the default page simply save items
   if (listName === "Today") {
     item.save();
     res.redirect("/");
   } else {
-    //if the user is in a custom list and tries to make a new list
-    if (newList != null) {
-      res.redirect("/" + newList)
-    }
-//in all custom pages add new items and push completed items to the bottom
-    List.findOne({name: listName}, function(err, foundList) { //find list
+    //create new custom list or go to existing one
+    List.findOne({name: listName}, function(err, foundList) {
+      foundList.items.push(item);
       foundList.save();
       res.redirect("/" + listName);
     });
   }
+});
 
+//if user creates new list
+app.post("/list", function(req, res) {
+  const newList = req.body.newList;
+  res.redirect("/" + newList);
 });
 
 //if delete or checkbox is pressed
-app.post("/delete", function(req, res){
+app.post("/delete", function(req, res) {
+
+  //find ID of items that user interacts with
   const deleteId = req.body.trash;
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
   const editId = req.body.edit;
 
-
+  //once the button is pressed create a new date
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
+
+  //home page
   if (listName === "Today") {
+
+    //find the item that is checked
     Item.findById(checkedItemId, function(err, item){
       if (!err) {
         if (item != null) {
+          //if the item is not completed yet make it completed
           if(item.completed === 0) {
             item.completed++;
           }
+          //otherwise remove completion status
           else {
             item.completed--;
           }
+
+          //find the time elapsed between start and completion
           let elapsed = dateEnd - item.time; //elapsed time of item
           let elapsedString = "seconds";
+
+          //convert from ms to seconds
           elapsed /= 1000;
+
+          //convert from seconds to days if at least one day
           if (elapsed > 86400) {
             elapsed /= 86400;
             elapsedString = "days";
           }
+
+          //convert from seconds to hours if at least one hour
           if (elapsed > 3600) {
             elapsed /= 3600;
             elapsedString = "hours";
           }
+
+          //convert from seconds to minutes if at least 1 minute
           if (elapsed > 60) {
             elapsed /= 60;
             elapsedString = "minutes";
           }
+
+          //round the time and change database values
           elapsed = Math.round(elapsed);
           item.dateFinished = elapsed;
           item.units = elapsedString;
@@ -147,25 +176,38 @@ app.post("/delete", function(req, res){
         }
       }
     });
-    console.log(deleteId);
+
+    //if delete button is pressed find it and delete it
     Item.findByIdAndRemove(deleteId, function(err, foundItem) {
       if(!err) {
         res.redirect("/");
       }
     });
+
+  //if the user checks or deletes an item in a custom list
   } else {
+
+    //find the custom list in the database
     List.findOne({name: listName}, function(err, foundList){
       if (!err){
+        //for each list update completion status
         for (var i = 0; i < foundList.items.length; i++)
         {
+
+          //if the item matches the item that was checked
           if (foundList.items[i]._id == checkedItemId)
-          if(foundList.items[i].completed === 0) {
-            foundList.items[i].completed++;
-          }
-          else {
-            foundList.items[i].completed--;
-          }
+
+            //if not completed yet update to completed
+            if(foundList.items[i].completed === 0) {
+              foundList.items[i].completed++;
+            }
+            //otherwise remove completion status
+            else {
+              foundList.items[i].completed--;
+            }
           if (foundList.items[i]._id == checkedItemId) {
+
+            //find time elapsed from start to completion and convert to proper units
             let elapsed = dateEnd - foundList.items[i].time;
             let elapsedString = "seconds";
             elapsed /= 1000;
@@ -181,12 +223,14 @@ app.post("/delete", function(req, res){
               elapsed /= 60;
               elapsedString = "minutes";
             }
+            //update item in database
             elapsed = Math.round(elapsed);
             foundList.items[i].dateFinished = elapsed;
             foundList.items[i].units = elapsedString;
       }
     }
     foundList.save();
+    //delete item from custom list
     List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: deleteId}}}, function(err, foundList){
       if (!err){
         res.redirect("/" + listName);
