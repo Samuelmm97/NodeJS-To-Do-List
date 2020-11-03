@@ -101,7 +101,7 @@ app.post("/", function(req, res) {
       foundList.items.push(item);//store list in array
       let length = foundList.items.length; //number of items in list
       for (var i = 0; i < length; i++) { //loop through every item
-        if(foundList.items[i].completed == 1){ //only find completed items
+        if(foundList.items[i].completed == 1) { //only find completed items
           const item1 = new Item ({ //recreate found item to store at the bottom
             name: foundList.items[i].name,
             completed: 1,
@@ -124,18 +124,19 @@ app.post("/", function(req, res) {
   }
 
 });
+
+//if delete or checkbox is pressed
 app.post("/delete", function(req, res){
   const deleteId = req.body.trash;
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
   const editId = req.body.edit;
 
-  console.log(editId);
-
+  
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
-    Item.findById(checkedItemId, function(err, item){
+    Item.findByIdAndRemove(checkedItemId, function(err, item){
       if (!err) {
         if (item != null) {
           if(item.completed === 0) {
@@ -163,7 +164,16 @@ app.post("/delete", function(req, res){
           item.dateFinished = elapsed;
           item.units = elapsedString;
           console.log(item);
-          item.save();
+          const item1 = new Item({
+            name: item.name,
+            completed: item.completed,
+            time: item.time,
+            date: item.date,
+            dateFinished: item.dateFinished,
+            units: item.units
+          });
+          //item.save();
+          item1.save();
         }
       }
     });
