@@ -29,17 +29,38 @@
 
     <%  newListItems.forEach(function(item){ %>
 
-      <form action="/delete" method="post">
-        <div class="item">
-          <input class="checkbox" type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
+
         <%  if (!item.completed) { %>
+          <form action="/delete" method="post">
+            <div class="item">
+              <input class="checkbox" type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
             <p>
               <em class="date"><%= item.date %></em>
               <strong contentEditable="true">
                 <%= item.name %>
                 </strong>
             </p>
-      <%    } else {  %>
+            <label class="trash">
+               <input class="btn" type="checkbox" name="trash" value="<%=item._id%>" onChange="this.form.submit()">
+               <i class="fas fa-trash unchecked"></i>
+               <i class="fas fa-trash checked"></i>
+             </label>
+           </div>
+           <input type="hidden" name="listName" value="<%= listTitle %>"></input>
+         </form>
+      <%    }  %>
+            <!-- TODO EDIT BUTTON <label class="edit">
+               <input class="btn" type="checkbox" name="edit" value="<%=item._id%>" onChange="this.form.submit()">
+               <i class="fas fa-edit unchecked"></i>
+             </label> -->
+    <%  }) %>
+
+    <%  newListItems.forEach(function(item){ %>
+
+      <%    if(item.completed) {  %>
+        <form action="/delete" method="post">
+          <div class="item">
+            <input class="checkbox" type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
             <p>
               <em class="date"><%= item.date %></em>
               <i class="completed">completed: </i>
@@ -48,20 +69,21 @@
                 </strong>
               <em class="dateEnd"><%= item.dateFinished %> <%= item.units %></em>
             </p>
+            <label class="trash">
+               <input class="btn" type="checkbox" name="trash" value="<%=item._id%>" onChange="this.form.submit()">
+               <i class="fas fa-trash unchecked"></i>
+               <i class="fas fa-trash checked"></i>
+             </label>
+      </div>
+      <input type="hidden" name="listName" value="<%= listTitle %>"></input>
+    </form>
         <%  } %>
             <!-- TODO EDIT BUTTON <label class="edit">
                <input class="btn" type="checkbox" name="edit" value="<%=item._id%>" onChange="this.form.submit()">
                <i class="fas fa-edit unchecked"></i>
              </label> -->
-              <label class="trash">
-                 <input class="btn" type="checkbox" name="trash" value="<%=item._id%>" onChange="this.form.submit()">
-                 <i class="fas fa-trash unchecked"></i>
-                 <i class="fas fa-trash checked"></i>
-               </label>
-        </div>
-        <input type="hidden" name="listName" value="<%= listTitle %>"></input>
-      </form>
     <%  }) %>
+
 
   </div>
 

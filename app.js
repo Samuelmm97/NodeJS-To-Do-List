@@ -98,26 +98,6 @@ app.post("/", function(req, res) {
     }
 //in all custom pages add new items and push completed items to the bottom
     List.findOne({name: listName}, function(err, foundList) { //find list
-      foundList.items.push(item);//store list in array
-      let length = foundList.items.length; //number of items in list
-      for (var i = 0; i < length; i++) { //loop through every item
-        if(foundList.items[i].completed == 1) { //only find completed items
-          const item1 = new Item ({ //recreate found item to store at the bottom
-            name: foundList.items[i].name,
-            completed: 1,
-            time: foundList.items[i].time,
-            date: foundList.items[i].date,
-            dateFinished: foundList.items[i].dateFinished,
-            units: foundList.items[i].units
-          });
-          foundList.items.push(item1); //use array to store items in lists
-          List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: foundList.items[i]._id}}}, function(err, foundList){
-            if(!err){
-              console.log("removed Succesfully"); //removed original item
-            }
-          });
-        }
-      }
       foundList.save();
       res.redirect("/" + listName);
     });
@@ -132,11 +112,11 @@ app.post("/delete", function(req, res){
   const listName = req.body.listName;
   const editId = req.body.edit;
 
-  
+
   let dateEnd = new Date();
   dateEnd = dateEnd.getTime();
   if (listName === "Today") {
-    Item.findByIdAndRemove(checkedItemId, function(err, item){
+    Item.findById(checkedItemId, function(err, item){
       if (!err) {
         if (item != null) {
           if(item.completed === 0) {
@@ -163,17 +143,7 @@ app.post("/delete", function(req, res){
           elapsed = Math.round(elapsed);
           item.dateFinished = elapsed;
           item.units = elapsedString;
-          console.log(item);
-          const item1 = new Item({
-            name: item.name,
-            completed: item.completed,
-            time: item.time,
-            date: item.date,
-            dateFinished: item.dateFinished,
-            units: item.units
-          });
-          //item.save();
-          item1.save();
+          item.save();
         }
       }
     });
