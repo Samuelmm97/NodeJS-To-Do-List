@@ -5,7 +5,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const _ = require("lodash");
-const e = require('express');
 
 const app = express();
 
@@ -177,7 +176,7 @@ app.post("/delete", function(req, res) {
         }
       }
     });
-    if (ip === "::1") {
+    if (ip === "35.141.95.50" || ip === "::1") {
       //if delete button is pressed find it and delete it
       Item.findByIdAndRemove(deleteId, function(err, foundItem) {
         if(!err) {
