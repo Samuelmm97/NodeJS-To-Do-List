@@ -20,13 +20,16 @@
     <div class="item">
       <p>Create your own list or add to this one</p>
     </div>
+    <div class="item">
+      <p>Add a date to the end of your item to sort by due date</p>
+    </div>
 
     <form class="item" action="/" method="post">
       <input type="text" name="newItem" placeholder="New Item" autocomplete="off">
       <button class="add" type="submit" name="list" value="<%= listTitle %>">+</button>
     </form>
 
-
+    <% newListItems.sort(compare) %>
     <%  newListItems.forEach(function(item){ %>
 
 
@@ -88,3 +91,17 @@
   </div>
 
 <%- include("footer") -%>
+
+<% function compare(a, b) { 
+
+    const nameA = Date.parse(a.name.substring(a.name.length - 11, a.name.length -1)); 
+    const nameB = Date.parse(b.name.substring(b.name.length - 11, b.name.length -1)); 
+
+    let comparison = 0; 
+    if (nameA > nameB) { 
+      comparison = 1; 
+    } else if (nameA < nameB) { 
+      comparison = -1; 
+    } 
+    return comparison; 
+  } %>
