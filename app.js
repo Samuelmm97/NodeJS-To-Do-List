@@ -116,11 +116,15 @@ app.post("/list", function(req, res) {
 //if delete or checkbox is pressed
 app.post("/delete", function(req, res) {
   //find ID of items that user interacts with
-  const ip = req.ip;
   const deleteId = req.body.trash;
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
   const editId = req.body.edit;
+
+  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  if (ip.substr(0, 7) == "::ffff:") {
+    ip = ip.substr(7)
+  }
 
   console.log(ip);
 
