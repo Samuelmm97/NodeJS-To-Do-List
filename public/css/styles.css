@@ -69,11 +69,6 @@ em {
   border-bottom: 0;
 }
 
-input:checked+p {
-  text-decoration: line-through;
-  text-decoration-color: #0e918c;
-}
-
 .checkbox {
   margin: 0 20px;
   position: absolute;

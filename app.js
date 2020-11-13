@@ -46,7 +46,7 @@ const List = mongoose.model("List", listSchema);
 //home page
 app.get("/", function(req, res) {
   Item.find({}, function(err, foundItems){
-      res.render("list", {listTitle: "Today", newListItems: foundItems});
+      res.render("home", {listTitle: "Today", newListItems: foundItems});
   });
 });
 
@@ -83,6 +83,12 @@ app.post("/", function(req, res) {
   var time = new Date().getTime();
   var date = new Date(time).toString().substring(4,15);
 
+  // get user ip
+  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  if (ip.substr(0, 7) == "::ffff:") {
+    ip = ip.substr(7)
+  }
+
   //create new item
   const item = new Item ({
     name: itemName,
@@ -95,8 +101,12 @@ app.post("/", function(req, res) {
 
   //in the default page simply save items
   if (listName === "Today") {
-    item.save();
-    res.redirect("/");
+    if (ip === process.env.USER_IP || ip === "::1") {
+      item.save();
+      res.redirect("/");
+    }  else {
+      return;
+    }
   } else {
     //create new custom list or go to existing one
     List.findOne({name: listName}, function(err, foundList) {
@@ -121,12 +131,12 @@ app.post("/delete", function(req, res) {
   const listName = req.body.listName;
   const editId = req.body.edit;
 
+  // get ip of user
   var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   if (ip.substr(0, 7) == "::ffff:") {
     ip = ip.substr(7)
   }
 
-  console.log(ip);
 
   //once the button is pressed create a new date
   let dateEnd = new Date();
@@ -134,6 +144,10 @@ app.post("/delete", function(req, res) {
 
   //home page
   if (listName === "Today") {
+
+    if (ip !== process.env.USER_IP && ip !== "::1") {
+      return;
+    }
 
     //find the item that is checked
     Item.findById(checkedItemId, function(err, item){
@@ -177,20 +191,18 @@ app.post("/delete", function(req, res) {
           elapsed = Math.round(elapsed);
           item.dateFinished = elapsed;
           item.units = elapsedString;
-          item.save();
+          item.save();   
         }
       }
     });
-    if (ip === "35.141.95.50" || ip === "::1") {
-      //if delete button is pressed find it and delete it
-      Item.findByIdAndRemove(deleteId, function(err, foundItem) {
-        if(!err) {
-          res.redirect("/");
-        }
-      });
-    } else {
-      res.redirect("/");
-    }
+
+    //if delete button is pressed find it and delete it
+    Item.findByIdAndRemove(deleteId, function(err, foundItem) {
+      if(!err) {
+        res.redirect("/");
+      }
+    });
+    
 
   //if the user checks or deletes an item in a custom list
   } else {
