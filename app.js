@@ -105,7 +105,7 @@ app.post("/", function(req, res) {
       item.save();
       res.redirect("/");
     }  else {
-      return;
+      res.redirect("/");
     }
   } else {
     //create new custom list or go to existing one
@@ -129,7 +129,6 @@ app.post("/delete", function(req, res) {
   const deleteId = req.body.trash;
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
-  const editId = req.body.edit;
 
   // get ip of user
   var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -145,63 +144,66 @@ app.post("/delete", function(req, res) {
   //home page
   if (listName === "Today") {
 
-    if (ip !== process.env.USER_IP && ip !== "::1") {
-      return;
-    }
 
     //find the item that is checked
     Item.findById(checkedItemId, function(err, item){
       if (!err) {
         if (item != null) {
-          //if the item is not completed yet make it completed
-          if(item.completed === 0) {
-            item.completed++;
+          if (ip === process.env.USER_IP || ip === "::1") {
+            //if the item is not completed yet make it completed
+            if(item.completed === 0) {
+              item.completed++;
+            }
+            //otherwise remove completion status
+            else {
+              item.completed--;
+            }
+
+            //find the time elapsed between start and completion
+            let elapsed = dateEnd - item.time; //elapsed time of item
+            let elapsedString = "seconds";
+
+            //convert from ms to seconds
+            elapsed /= 1000;
+
+            //convert from seconds to days if at least one day
+            if (elapsed > 86400) {
+              elapsed /= 86400;
+              elapsedString = "days";
+            }
+
+            //convert from seconds to hours if at least one hour
+            if (elapsed > 3600) {
+              elapsed /= 3600;
+              elapsedString = "hours";
+            }
+
+            //convert from seconds to minutes if at least 1 minute
+            if (elapsed > 60) {
+              elapsed /= 60;
+              elapsedString = "minutes";
+            }
+
+            //round the time and change database values
+            elapsed = Math.round(elapsed);
+            item.dateFinished = elapsed;
+            item.units = elapsedString;
+            item.save();   
           }
-          //otherwise remove completion status
-          else {
-            item.completed--;
-          }
-
-          //find the time elapsed between start and completion
-          let elapsed = dateEnd - item.time; //elapsed time of item
-          let elapsedString = "seconds";
-
-          //convert from ms to seconds
-          elapsed /= 1000;
-
-          //convert from seconds to days if at least one day
-          if (elapsed > 86400) {
-            elapsed /= 86400;
-            elapsedString = "days";
-          }
-
-          //convert from seconds to hours if at least one hour
-          if (elapsed > 3600) {
-            elapsed /= 3600;
-            elapsedString = "hours";
-          }
-
-          //convert from seconds to minutes if at least 1 minute
-          if (elapsed > 60) {
-            elapsed /= 60;
-            elapsedString = "minutes";
-          }
-
-          //round the time and change database values
-          elapsed = Math.round(elapsed);
-          item.dateFinished = elapsed;
-          item.units = elapsedString;
-          item.save();   
         }
       }
     });
 
-    //if delete button is pressed find it and delete it
-    Item.findByIdAndRemove(deleteId, function(err, foundItem) {
-      if(!err) {
-        res.redirect("/");
-      }
-    });
+    if (ip === process.env.USER_IP || ip === "::1") {
+      //if delete button is pressed find it and delete it
+      Item.findByIdAndRemove(deleteId, function(err, foundItem) {
+        if(!err) {
+          res.redirect("/");
+        }
+      });
+    } else {
+      res.redirect("/");
+    }
     
 
   //if the user checks or deletes an item in a custom list
