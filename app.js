@@ -181,7 +181,7 @@ app.post("/delete", function(req, res) {
         }
       }
     });
-    if (ip === "::ffff:10.95.209.15" || ip === "::1") {
+    if (ip === "35.141.95.50" || ip === "::1") {
       //if delete button is pressed find it and delete it
       Item.findByIdAndRemove(deleteId, function(err, foundItem) {
         if(!err) {
