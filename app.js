@@ -115,13 +115,14 @@ app.post("/list", function(req, res) {
 
 //if delete or checkbox is pressed
 app.post("/delete", function(req, res) {
-
   //find ID of items that user interacts with
   const ip = req.ip;
   const deleteId = req.body.trash;
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
   const editId = req.body.edit;
+
+  console.log(ip);
 
   //once the button is pressed create a new date
   let dateEnd = new Date();
