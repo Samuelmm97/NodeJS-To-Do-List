@@ -265,6 +265,12 @@ app.post("/delete", function(req, res) {
 
 });
 
+app.post("/edit", function(req, res) {
+  listName = req.body.listName;
+  editedItem = req.body.edit;
+  console.log(editedItem);
+});
+
 app.get("/about", function(req, res){
   res.render("about");
 });
